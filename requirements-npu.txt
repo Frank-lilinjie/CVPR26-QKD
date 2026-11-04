@@ -1,0 +1,25 @@
+# LEGACY PyTorch/torch_npu path only. The supported 910B path is
+# qkd_mindspore plus requirements-mindspore.txt.
+#
+# Ascend 910B / CANN environment dependencies for the legacy implementation.
+#
+# Install PyTorch, torchvision and torch_npu FIRST from the vendor-matched
+# wheels for the installed CANN version. Do not install a generic CUDA wheel
+# from PyPI. The exact versions must be selected from Huawei's Ascend wheel
+# repository (or your cluster's provided wheelhouse).
+#
+# Example only; replace the versions with the matching set for your host:
+#   pip install torch==2.1.0 torchvision==0.16.0 --index-url <ascend-wheel-index>
+#   pip install torch_npu==2.1.0.post8 --index-url <ascend-wheel-index>
+
+numpy>=1.23,<2.0
+scipy>=1.9
+scikit-learn>=1.2
+Pillow>=9.0
+tqdm>=4.65
+easydict>=1.10
+timm>=0.9.10,<1.0
+
+# Optional, only for the legacy t-SNE helper in models/base.py.
+# umap-learn>=0.5
+# matplotlib>=3.7

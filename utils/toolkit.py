@@ -10,7 +10,9 @@ def count_parameters(model, trainable=False):
 
 
 def tensor2numpy(x):
-    return x.cpu().data.numpy() if x.is_cuda else x.data.numpy()
+    if not torch.is_tensor(x):
+        return np.asarray(x)
+    return x.detach().cpu().numpy()
 
 
 def target2onehot(targets, n_classes):

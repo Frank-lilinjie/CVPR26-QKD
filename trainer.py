@@ -1,10 +1,10 @@
 import sys
 import logging
 import copy
-import torch
 from utils import factory
 from utils.data_manager import DataManager
 from utils.toolkit import count_parameters
+from utils.device import describe_devices, resolve_devices, seed_all, set_active_device
 import os
 import numpy as np
 
@@ -46,8 +46,9 @@ def _train(args):
         ],
     )
 
-    _set_random(args["seed"])
     _set_device(args)
+    _set_random(args["seed"])
+    logging.info("Using device(s): %s", describe_devices(args["device"]))
     print_args(args)
 
     data_manager = DataManager(
@@ -133,26 +134,19 @@ def _train(args):
 
 
 def _set_device(args):
-    device_type = args["device"]
-    gpus = []
-
-    for device in device_type:
-        if device == -1:
-            device = torch.device("cpu")
-        else:
-            device = torch.device("cuda:{}".format(device))
-
-        gpus.append(device)
-
-    args["device"] = gpus
+    devices = resolve_devices(args.get("device"), backend=args.get("backend"))
+    if len(devices) != 1:
+        raise RuntimeError(
+            "This release supports one accelerator per process. "
+            "Multi-device DataParallel/distributed execution is not implemented."
+        )
+    set_active_device(devices[0])
+    args["device"] = devices
+    args["backend"] = devices[0].type
 
 
 def _set_random(seed=1):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    seed_all(seed)
 
 
 def print_args(args):

@@ -27,25 +27,26 @@
     "drop_path": 0.0,
     "ffn_num": 64,
 
-    "identifier_type": "quantum",
-    "use_pqk": false,
-    "n_projectors": 4,
-    "rbf_gamma": 1.0,
-    "learnable_gamma": true,
+
     "n_qubits": 3,
     "quantum_layers": 3,
-    "identifier_layers": 3,
-    "hidden_dim": 256,
-    "num_heads": 8,
     "quantum_epochs": 10,
-    "anchors_per_task": 5,
-    "ema_decay": 0.99,
+
+    "svd_dim": 12,
+    "quantum_measure": "pqk",
+    "save_reduced_states": true,
+    "svd_random_state": 1993,
 
     "crct_epochs": 30,
     "ca_lr": 0.005,
-    "ca_storage_efficient_method": "covariance", 
+    "ca_storage_efficient_method": "covariance",
     "ca_storage_efficient_method_choices": ["covariance", "multi-centroid", "variance"],
     "n_centroids": 10,
+
+    "use_distillation": true,
+    "lambda_kd": 1.0,
+    "lambda_sparse": 0.05,
+    "kd_temperature": 1.0,
 
     "print_forget": true
 }

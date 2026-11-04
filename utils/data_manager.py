@@ -18,6 +18,8 @@ class DataManager(object):
         offset = len(self._class_order) - sum(self._increments)
         if offset > 0:
             self._increments.append(offset)
+        self._apply_task_limit(seed)
+        self._apply_sample_limit(seed)
             
     @property
     def nb_tasks(self):
@@ -138,6 +140,7 @@ class DataManager(object):
 
     def _setup_data(self, dataset_name, shuffle, seed):
         idata = _get_idata(dataset_name, self.args)
+        idata.args = self.args
         idata.download_data()
 
         # Data
@@ -165,6 +168,37 @@ class DataManager(object):
             self._train_targets, self._class_order
         )
         self._test_targets = _map_new_class_index(self._test_targets, self._class_order)
+
+    def _apply_task_limit(self, seed):
+        max_tasks = self.args.get("max_tasks")
+        if not max_tasks or int(max_tasks) <= 0:
+            return
+        self._increments = self._increments[: int(max_tasks)]
+        keep_classes = sum(self._increments)
+        if keep_classes >= len(self._class_order):
+            return
+
+        self._class_order = self._class_order[:keep_classes]
+        train_mask = self._train_targets < keep_classes
+        test_mask = self._test_targets < keep_classes
+        self._train_data = self._train_data[train_mask]
+        self._train_targets = self._train_targets[train_mask]
+        self._test_data = self._test_data[test_mask]
+        self._test_targets = self._test_targets[test_mask]
+        logging.info("Limited run to %d task(s), %d classes", len(self._increments), keep_classes)
+
+    def _apply_sample_limit(self, seed):
+        limit = self.args.get("max_samples_per_class")
+        if not limit or int(limit) <= 0:
+            return
+        rng = np.random.default_rng(seed)
+        self._train_data, self._train_targets = _limit_per_class(
+            self._train_data, self._train_targets, int(limit), rng
+        )
+        self._test_data, self._test_targets = _limit_per_class(
+            self._test_data, self._test_targets, int(limit), rng
+        )
+        logging.info("Limited dataset to at most %d sample(s) per class", int(limit))
 
     def _select(self, x, y, low_range, high_range):
         idxes = np.where(np.logical_and(y >= low_range, y < high_range))[0]
@@ -211,6 +245,17 @@ class DummyDataset(Dataset):
 
 def _map_new_class_index(y, order):
     return np.array(list(map(lambda x: order.index(x), y)))
+
+
+def _limit_per_class(x, y, limit, rng):
+    selected = []
+    for class_id in np.unique(y):
+        indices = np.flatnonzero(y == class_id)
+        if len(indices) > limit:
+            indices = np.sort(rng.choice(indices, size=limit, replace=False))
+        selected.append(indices)
+    indices = np.concatenate(selected) if selected else np.empty(0, dtype=np.int64)
+    return x[indices], y[indices]
 
 
 def _get_idata(dataset_name, args=None):

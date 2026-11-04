@@ -1,0 +1,8 @@
+# Non-Ascend Python dependencies for the MindSpore/CANN path.
+#
+# MindSpore itself must be installed from the Ascend-compatible wheel matching
+# the installed CANN toolkit and driver. Do not install a generic PyPI CPU
+# wheel and expect it to use the 910B NPU.
+numpy>=1.23,<2.0
+Pillow>=9.0
+scikit-learn>=1.2

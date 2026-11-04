@@ -286,9 +286,10 @@ class SimpleContinualLinear(nn.Module):
 
     def update(self, nb_classes, freeze_old=True):
         single_head = []
+        device = next(self.parameters()).device
         if self.with_norm:
-            single_head.append(nn.LayerNorm(self.embed_dim).cuda())
-        _fc = nn.Linear(self.embed_dim, nb_classes, bias=True).cuda()
+            single_head.append(nn.LayerNorm(self.embed_dim).to(device))
+        _fc = nn.Linear(self.embed_dim, nb_classes, bias=True).to(device)
         trunc_normal_(_fc.weight, std=.02)
         nn.init.constant_(_fc.bias, 0) 
         single_head.append(_fc)
