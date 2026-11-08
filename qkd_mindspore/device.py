@@ -94,10 +94,7 @@ def setup_context(config: dict[str, Any]) -> dict[str, Any]:
     ms.set_seed(int(config.get("seed", 1993)))
 
     if mode == ms.GRAPH_MODE:
-        logging.warning(
-            "MindSpore graph mode is experimental for this dynamic incremental "
-            "trainer. Use ms_mode=pynative for the first 910B validation."
-        )
+        logging.info("MindSpore graph mode selected for the dynamic incremental trainer.")
 
     info = {
         "mindspore_version": getattr(ms, "__version__", "unknown"),

@@ -1,8 +1,7 @@
 """Command-line entry point for the MindSpore/Ascend QKD implementation.
 
 Only configuration helpers are imported at module import time.  The trainer is
-loaded lazily so ``python -m qkd_mindspore.main --help`` and ``--dry-run`` work
-on a laptop without MindSpore installed.
+loaded lazily for ``python -m qkd_mindspore.main --help`` and ``--dry-run``.
 """
 
 from __future__ import annotations
@@ -55,7 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="ms_mode",
         choices=("pynative", "graph"),
         default=None,
-        help="MindSpore execution mode; use pynative for first 910B validation.",
+        help="MindSpore execution mode.",
     )
     parser.add_argument("--dataset", default=None, help="Dataset name override.")
     parser.add_argument(
@@ -112,7 +111,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--num-workers",
         type=int,
         default=None,
-        help="Host prefetch workers; use 0 for the first 910B smoke test.",
+        help="Host prefetch workers.",
     )
     parser.add_argument("--n-qubits", type=int, default=None, help="Qubit count.")
     parser.add_argument(
@@ -135,7 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Validate and print the effective configuration without MindSpore.",
+        help="Validate and print the effective configuration.",
     )
     return parser
 

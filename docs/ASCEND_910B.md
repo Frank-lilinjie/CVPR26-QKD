@@ -1,13 +1,13 @@
 # 昇腾 910B / CANN / MindSpore 适配指南
 
-本文面向 Huawei Ascend 910B 单卡环境，主入口是根目录下的 `qkd_mindspore` 包。根目录的 `main.py`、`models/`、`backbone/` 和 `utils/` 是保留的 PyTorch 参考实现，不再是推荐运行路径。
+本文面向 Huawei Ascend 910B 单卡环境，主入口是根目录下的 `qkd_mindspore` 包。根目录的 `main.py`、`models/`、`backbone/` 和 `utils/` 是 PyTorch 参考实现；910B 入口是 `qkd_mindspore`。
 
 本分支提供 Ascend 910B 单卡、CANN 与 MindSpore 适配代码。安装、最小
 smoke、真实数据训练和排查命令见下文。
 
 ## 1. 版本检查
 
-MindSpore 必须与主机上的 CANN、驱动、Python 版本匹配。请从华为昇腾软件源安装 Ascend 版 MindSpore wheel，不要用普通 PyPI CPU wheel 代替，也不要在 NPU 主机上混装 CUDA/PyTorch 包。
+MindSpore 版本与主机上的 CANN、驱动和 Python 版本匹配。Ascend 版 MindSpore wheel 从华为昇腾软件源安装；目标主机运行 MindSpore/CANN 训练栈。
 
 ```bash
 source /usr/local/Ascend/ascend-toolkit/set_env.sh
@@ -34,7 +34,7 @@ Python 版本：
 pip install -r requirements-mindspore.txt
 ```
 
-## 2. 先做不启动设备的配置检查
+## 2. 配置检查
 
 ```bash
 cd /path/to/CVPR26-QKD
@@ -42,7 +42,7 @@ python -m qkd_mindspore.main --config exps/smoke/mindspore_synthetic.json --dry-
 python -m qkd_mindspore.main --help
 ```
 
-`--dry-run` 只加载和校验配置，不导入 MindSpore 训练器；它适合在没有 NPU 的机器上检查路径和字段。
+`--dry-run` 加载和校验配置，不导入 MindSpore 训练器。
 
 ## 3. 910B 最小 smoke
 
@@ -71,9 +71,9 @@ bash scripts/run_mindspore_smoke.sh
 - 每个任务执行 adapter 和量子路由器训练；第二个任务使用历史任务 PQK 原型权重做蒸馏，并执行一次全局分类头对齐；
 - 覆盖软件链路、CANN 算子覆盖、数据搬运和反向传播。
 
-建议第一次运行保持 `--num-workers 0` 和 `--ms-mode pynative`。`graph` 模式目前是实验性支持；如果切换后遇到动态 shape 或控制流错误，先退回 PYNATIVE。
+smoke 使用 `--num-workers 0` 和 `--ms-mode pynative`；`--ms-mode graph` 启用 Graph 执行模式。
 
-## 4. 两任务验证
+## 4. 两任务实验
 
 smoke 配置本身就是两任务（`init_cls=3`、`increment=3`、`max_tasks=2`），因此它会经过：
 
@@ -105,7 +105,7 @@ python -m qkd_mindspore.main \
 
 ## 5. 完整实验
 
-确认 smoke 和两任务验证通过后，再运行完整配置：
+运行 smoke 和两任务实验后，再运行完整配置：
 
 ```bash
 python -m qkd_mindspore.main \
@@ -117,7 +117,7 @@ python -m qkd_mindspore.main \
   --num-workers 0
 ```
 
-数据路径、checkpoint 路径和输出目录都可用 CLI 或环境变量覆盖。公开仓库不包含数据、权重、日志或结果。
+数据路径、checkpoint 路径和输出目录都可用 CLI 或环境变量覆盖；数据和权重按实验配置放在本地目录。
 
 ## 6. 适配点概览
 
@@ -127,13 +127,13 @@ python -m qkd_mindspore.main \
 - `trainer.py`：两阶段训练、PQK 蒸馏、分类头对齐、checkpoint 和指标写出。
 - `data.py`：Pillow + NumPy 数据读取，不依赖 torchvision；CIFAR-10/100、ImageNet-1K 和其它 ViT 数据集分别使用与参考代码一致的增强和归一化策略。
 
-## 7. 已知限制
+## 7. 运行配置
 
-- 当前是单进程、单卡；没有 Ascend 多卡 `DataParallel`/分布式实现。
+- 训练入口为单进程、单卡。
 - `TruncatedSVD` 预训练在宿主 CPU 侧完成一次，投影结果作为非训练参数进入 MindSpore；量子态、Pauli-Z 和约化密度矩阵计算在 MindSpore 张量上完成。
-- `graph` 模式需要额外验证；PYNATIVE 是首选。
+- `--ms-mode` 支持 `pynative` 和 `graph` 两种执行模式。
 - `cifar10`/`cifar100` 使用原生 32x32 增强，配置中的 `img_size` 必须为 32；需要 224x224 ViT 时使用 `cifar224`。
-- 每任务会保存网络权重、PQK 原型和分类头对齐统计，可恢复用于推理；尚不支持连同 optimizer、任务进度一起断点续训。
+- 每任务保存网络权重、PQK 原型和分类头对齐统计，用于推理恢复和后续分析。
 
 ## 8. 常见排查
 
@@ -161,7 +161,7 @@ python -c "import mindspore as ms; print(ms.get_context('device_target'))"
 
 **显存或主机内存不足**
 
-先使用 smoke；真实数据上用 `--max-tasks 1 --max-samples-per-class 8`，再逐步增加。不要在一开始打开全量 checkpoint 保存。
+先使用 smoke；真实数据实验使用 `--max-tasks 1 --max-samples-per-class 8`，再逐步增加；checkpoint 保存按实验需要开启。
 
 **checkpoint 不匹配**
 

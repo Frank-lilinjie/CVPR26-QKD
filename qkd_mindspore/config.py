@@ -130,7 +130,7 @@ def normalize_config(
     if framework not in {"mindspore", "ms", "ascend", "npu", "cann"}:
         raise ValueError(
             "framework must be mindspore/ms/ascend when using qkd_mindspore; "
-            "the legacy PyTorch entry point is main.py"
+            "the PyTorch entry point is main.py"
         )
     config["framework"] = "mindspore"
 

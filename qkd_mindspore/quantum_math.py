@@ -1,8 +1,8 @@
 """Pure-NumPy reference implementation of the QKD quantum circuit.
 
-The MindSpore implementation deliberately stores real and imaginary amplitudes
-separately.  These helpers provide an auditable complex-valued reference that
-can be tested without installing MindSpore or accessing an Ascend device.
+The MindSpore implementation stores real and imaginary amplitudes separately.
+These helpers provide a complex-valued reference for the circuit mathematics,
+independent of MindSpore and the device runtime.
 """
 
 from __future__ import annotations

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Legacy PyTorch/torch_npu smoke launcher. Kept for reference reproduction.
+# PyTorch/torch_npu smoke launcher for the reference implementation.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

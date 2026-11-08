@@ -137,8 +137,7 @@ def _set_device(args):
     devices = resolve_devices(args.get("device"), backend=args.get("backend"))
     if len(devices) != 1:
         raise RuntimeError(
-            "This release supports one accelerator per process. "
-            "Multi-device DataParallel/distributed execution is not implemented."
+            "This entry point accepts one accelerator per process."
         )
     set_active_device(devices[0])
     args["device"] = devices

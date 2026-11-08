@@ -1,1 +1,1 @@
-"""Unit tests that do not require MindSpore or Ascend hardware."""
+"""Unit tests for configuration, data transforms, checkpoints and NumPy math."""

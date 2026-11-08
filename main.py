@@ -56,7 +56,7 @@ def setup_parser():
     parser.add_argument('--backend', choices=['auto', 'npu', 'cuda', 'cpu'], default=None,
                         help='Accelerator backend. Defaults to QKD_BACKEND or auto.')
     parser.add_argument('--num-workers', type=int, default=None,
-                        help='DataLoader workers. Use 0 for the first NPU smoke test.')
+                        help='DataLoader workers.')
     parser.add_argument('--quantum-device', default=None,
                         help='Device for the complex-valued quantum simulator: auto, cpu, npu:0 or same.')
     parser.add_argument('--n_qubits', type=int, default=None,
