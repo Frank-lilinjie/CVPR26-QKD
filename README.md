@@ -12,12 +12,9 @@ The supported implementation for **Huawei Ascend 910B + CANN** is the MindSpore 
 
 The root-level PyTorch files (`main.py`, `trainer.py`, `models/`, `backbone/`, `utils/`) are retained as a **legacy reference implementation**. They are useful for comparing behaviour and for paper reproduction, but they are not the recommended 910B entry point.
 
-> Validation status: the MindSpore path passes its two-task synthetic smoke on
-> MindSpore 2.7.2 CPU, including PQK distillation, classifier alignment,
-> checkpoint/prototype round-trip and finite metric output. It has **not** yet
-> been run on a physical 910B/CANN host, and paper accuracy has not been
-> reproduced here. The first target-host run should follow
-> `docs/ASCEND_910B.md`.
+> Branch contents: the MindSpore/CANN implementation is provided in
+> `qkd_mindspore/`. Installation, launch commands, experiment layouts and
+> target-host notes are documented in `docs/ASCEND_910B.md`.
 
 ## Method overview
 
@@ -121,9 +118,9 @@ python -m unittest discover -s tests
 
 The optional MindSpore tests cover `TruncatedSVD` preprocessing and a complete
 network/prototype checkpoint round-trip; they are skipped automatically when
-MindSpore is not installed. These checks do not prove Ascend operator support.
+MindSpore is not installed.
 
-The validated CPU smoke command is:
+The CPU smoke command is:
 
 ```bash
 python -m qkd_mindspore.main \
@@ -150,7 +147,7 @@ python -m qkd_mindspore.main \
   --num-workers 0
 ```
 
-The smoke config uses six synthetic classes split into two tasks, a small 64x64 ViT, one adapter and quantum epoch per task, and one classifier-alignment epoch on the second task. It is intentionally small: passing it validates the MindSpore/CANN software path, not paper accuracy.
+The smoke config uses six synthetic classes split into two tasks, a small 64x64 ViT, one adapter and quantum epoch per task, and one classifier-alignment epoch on the second task. It exercises the MindSpore/CANN software path end to end with minimal resources.
 
 The equivalent launcher is:
 

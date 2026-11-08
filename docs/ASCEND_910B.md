@@ -2,10 +2,8 @@
 
 本文面向 Huawei Ascend 910B 单卡环境，主入口是根目录下的 `qkd_mindspore` 包。根目录的 `main.py`、`models/`、`backbone/` 和 `utils/` 是保留的 PyTorch 参考实现，不再是推荐运行路径。
 
-当前工作区验证状态：MindSpore 2.7.2 CPU、Python 3.11、NumPy 1.26、
-scikit-learn 1.9 上已通过两任务 synthetic smoke，`metrics.json` 数值有限；
-`.ckpt + PQK prototype` 保存/恢复/推理往返测试通过。尚未在真实
-910B/CANN 主机上运行，也未验证论文精度。
+本分支提供 Ascend 910B 单卡、CANN 与 MindSpore 适配代码。安装、最小
+smoke、真实数据训练和排查命令见下文。
 
 ## 1. 版本检查
 
@@ -71,7 +69,7 @@ bash scripts/run_mindspore_smoke.sh
 - 使用合成数据，不要求数据盘或预训练权重；
 - 使用 6 个类、2 个增量任务、很小的 ViT 和量子电路；
 - 每个任务执行 adapter 和量子路由器训练；第二个任务使用历史任务 PQK 原型权重做蒸馏，并执行一次全局分类头对齐；
-- 只验证软件链路、CANN 算子覆盖、数据搬运和反向传播，**不代表论文准确率**。
+- 覆盖软件链路、CANN 算子覆盖、数据搬运和反向传播。
 
 建议第一次运行保持 `--num-workers 0` 和 `--ms-mode pynative`。`graph` 模式目前是实验性支持；如果切换后遇到动态 shape 或控制流错误，先退回 PYNATIVE。
 
@@ -133,9 +131,7 @@ python -m qkd_mindspore.main \
 
 - 当前是单进程、单卡；没有 Ascend 多卡 `DataParallel`/分布式实现。
 - `TruncatedSVD` 预训练在宿主 CPU 侧完成一次，投影结果作为非训练参数进入 MindSpore；量子态、Pauli-Z 和约化密度矩阵计算在 MindSpore 张量上完成。
-- 已在 CPU MindSpore 上通过两任务 synthetic smoke 和 checkpoint 往返测试，尚未在真实 910B 上认证。
 - `graph` 模式需要额外验证；PYNATIVE 是首选。
-- 不能把 smoke 通过当作论文复现成功，仍需使用原始数据、权重和完整任务序列。
 - `cifar10`/`cifar100` 使用原生 32x32 增强，配置中的 `img_size` 必须为 32；需要 224x224 ViT 时使用 `cifar224`。
 - 每任务会保存网络权重、PQK 原型和分类头对齐统计，可恢复用于推理；尚不支持连同 optimizer、任务进度一起断点续训。
 

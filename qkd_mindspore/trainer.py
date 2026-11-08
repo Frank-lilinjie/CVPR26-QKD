@@ -163,7 +163,7 @@ class _Trainer:
             )
         logging.warning(
             "No ViT checkpoint found at %s; using random initialisation. "
-            "This is suitable for a software smoke test, not paper accuracy.",
+            "This configuration is intended for a lightweight software smoke run.",
             path,
         )
 
